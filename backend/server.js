@@ -136,9 +136,15 @@ const autenticar = (req, res, next) => {
 };
 
 // Endpoint protegido para buscar agendamentos
-app.get('/agendamentos', autenticar, (req, res) => {
+app.get('/agendamentos', (req, res) => {
+  const { usuarioId } = req.query; // Receber o ID do usuário via query string
+
+  if (!usuarioId) {
+    return res.status(400).send('ID do usuário é obrigatório.');
+  }
+
   const query = 'SELECT * FROM agendamentos WHERE usuario_id = ?';
-  db.query(query, [req.usuario.id], (err, results) => {
+  db.query(query, [usuarioId], (err, results) => {
     if (err) {
       console.error('Erro ao buscar agendamentos:', err);
       return res.status(500).send('Erro ao buscar agendamentos.');
