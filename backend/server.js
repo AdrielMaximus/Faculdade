@@ -89,6 +89,63 @@ app.get('/test-db', (req, res) => {
     res.status(200).send('Conexão com o banco de dados está funcionando!');
   });
 });
+const jwt = require('jsonwebtoken');
+
+// Endpoint de login
+app.post('/login', (req, res) => {
+  const { email, senha } = req.body;
+
+  const query = 'SELECT * FROM usuarios WHERE email = ?';
+  db.query(query, [email], async (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar usuário:', err);
+      return res.status(500).send('Erro ao buscar usuário.');
+    }
+
+    if (results.length === 0) {
+      return res.status(401).send('Email ou senha inválidos.');
+    }
+
+    const usuario = results[0];
+    const senhaValida = await bcrypt.compare(senha, usuario.senha);
+
+    if (!senhaValida) {
+      return res.status(401).send('Email ou senha inválidos.');
+    }
+
+    // Gerar token JWT
+    const token = jwt.sign({ id: usuario.id, email: usuario.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.status(200).json({ token });
+  });
+});
+
+// Middleware para verificar o token
+const autenticar = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    return res.status(401).send('Acesso negado.');
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.usuario = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).send('Token inválido.');
+  }
+};
+
+// Endpoint protegido para buscar agendamentos
+app.get('/agendamentos', autenticar, (req, res) => {
+  const query = 'SELECT * FROM agendamentos WHERE usuario_id = ?';
+  db.query(query, [req.usuario.id], (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar agendamentos:', err);
+      return res.status(500).send('Erro ao buscar agendamentos.');
+    }
+    res.status(200).json(results);
+  });
+});
 // Iniciar o servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
