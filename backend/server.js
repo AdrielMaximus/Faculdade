@@ -53,13 +53,7 @@ app.post('/agendamento', (req, res) => {
       return res.status(500).send('Erro ao criar agendamento.');
     }
 
-    // Enviar email de confirmação
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: req.body.email,
-      subject: 'Confirmação de Agendamento',
-      text: `Seu agendamento foi confirmado para ${data} às ${horario}.`,
-    };
+    res.status(201).send('Agendamento criado com sucesso!');
   });
 });
 
