@@ -1,0 +1,86 @@
+const express = require('express');
+const mysql = require('mysql');
+const dotenv = require('dotenv');
+const bcrypt = require('bcrypt');
+const nodemailer = require('nodemailer');
+
+dotenv.config();
+
+const app = express();
+app.use(express.json());
+
+// Configuração do banco de dados
+const db = mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+});
+
+db.connect((err) => {
+  if (err) {
+    console.error('Erro ao conectar ao banco de dados:', err);
+    process.exit(1);
+  }
+  console.log('Conectado ao banco de dados!');
+});
+
+// Configuração do serviço de email
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+// Endpoint de cadastro de usuários
+app.post('/cadastro', async (req, res) => {
+  const { nome, email, senha } = req.body;
+
+  const hashedSenha = await bcrypt.hash(senha, 10);
+
+  const query = 'INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)';
+  db.query(query, [nome, email, hashedSenha], (err, result) => {
+    if (err) {
+      console.error('Erro ao cadastrar usuário:', err);
+      return res.status(500).send('Erro ao cadastrar usuário.');
+    }
+    res.status(201).send('Usuário cadastrado com sucesso!');
+  });
+});
+
+// Endpoint de agendamento
+app.post('/agendamento', (req, res) => {
+  const { usuarioId, data, horario } = req.body;
+
+  const query = 'INSERT INTO agendamentos (usuario_id, data, horario) VALUES (?, ?, ?)';
+  db.query(query, [usuarioId, data, horario], (err, result) => {
+    if (err) {
+      console.error('Erro ao criar agendamento:', err);
+      return res.status(500).send('Erro ao criar agendamento.');
+    }
+
+    // Enviar email de confirmação
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: req.body.email,
+      subject: 'Confirmação de Agendamento',
+      text: `Seu agendamento foi confirmado para ${data} às ${horario}.`,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Erro ao enviar email:', error);
+        return res.status(500).send('Erro ao enviar email.');
+      }
+      res.status(201).send('Agendamento criado e email enviado com sucesso!');
+    });
+  });
+});
+
+// Iniciar o servidor
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+});
