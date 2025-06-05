@@ -69,6 +69,16 @@ app.post('/agendamento', (req, res) => {
     res.status(201).send('Agendamento criado com sucesso!');
   });
 });
+app.get('/agendamentos', (req, res) => {
+  const query = 'SELECT * FROM agendamentos';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar agendamentos:', err);
+      return res.status(500).send('Erro ao buscar agendamentos.');
+    }
+    res.status(200).json(results);
+  });
+});
 // Endpoint para testar conexão com o banco de dados
 app.get('/test-db', (req, res) => {
   db.query('SELECT 1', (err, result) => {
