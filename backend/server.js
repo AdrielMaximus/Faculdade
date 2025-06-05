@@ -25,14 +25,6 @@ db.connect((err) => {
   console.log('Conectado ao banco de dados!');
 });
 
-// Configuração do serviço de email
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 // Endpoint de cadastro de usuários
 app.post('/cadastro', async (req, res) => {
@@ -68,14 +60,6 @@ app.post('/agendamento', (req, res) => {
       subject: 'Confirmação de Agendamento',
       text: `Seu agendamento foi confirmado para ${data} às ${horario}.`,
     };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error('Erro ao enviar email:', error);
-        return res.status(500).send('Erro ao enviar email.');
-      }
-      res.status(201).send('Agendamento criado e email enviado com sucesso!');
-    });
   });
 });
 
