@@ -30,15 +30,28 @@ db.connect((err) => {
 app.post('/cadastro', async (req, res) => {
   const { nome, email, senha } = req.body;
 
-  const hashedSenha = await bcrypt.hash(senha, 10);
-
-  const query = 'INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)';
-  db.query(query, [nome, email, hashedSenha], (err, result) => {
+  // Verificar se o email já existe
+  const checkEmailQuery = 'SELECT * FROM usuarios WHERE email = ?';
+  db.query(checkEmailQuery, [email], async (err, result) => {
     if (err) {
-      console.error('Erro ao cadastrar usuário:', err);
-      return res.status(500).send('Erro ao cadastrar usuário.');
+      console.error('Erro ao verificar email:', err);
+      return res.status(500).send('Erro ao verificar email.');
     }
-    res.status(201).send('Usuário cadastrado com sucesso!');
+
+    if (result.length > 0) {
+      return res.status(400).send('Email já está cadastrado.');
+    }
+
+    // Se o email não existir, cadastrar o usuário
+    const hashedSenha = await bcrypt.hash(senha, 10);
+    const insertQuery = 'INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)';
+    db.query(insertQuery, [nome, email, hashedSenha], (err, result) => {
+      if (err) {
+        console.error('Erro ao cadastrar usuário:', err);
+        return res.status(500).send('Erro ao cadastrar usuário.');
+      }
+      res.status(201).send('Usuário cadastrado com sucesso!');
+    });
   });
 });
 
