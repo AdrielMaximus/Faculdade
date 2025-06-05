@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Acolhe+ | Agendamento</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="global.js"></script>
+<script src="global.js"></script>
   <style>
     @keyframes fade-in {
       from { opacity: 0; transform: translateY(20px); }
@@ -102,20 +102,29 @@
   </footer>
 
   <script>
-    document.getElementById("formAgendamento").addEventListener("submit", function (e) {
-      e.preventDefault();
+    document.getElementById("formAgendamento").addEventListener("submit", async function (e) {
+  e.preventDefault();
 
-      const nome = document.getElementById("nome").value;
-      const email = document.getElementById("email").value;
-      const profissional = document.getElementById("profissional").selectedOptions[0].text;
-      const data = document.getElementById("data").value;
-      const hora = document.getElementById("hora").value;
+  const nome = document.getElementById("nome").value;
+  const email = document.getElementById("email").value;
+  const data = document.getElementById("data").value;
+  const hora = document.getElementById("hora").value;
 
-      if (nome && email && profissional && data && hora) {
-        alert(`✅ Agendamento confirmado para ${nome} com ${profissional} em ${data} às ${hora}.`);
-        this.reset();
-      }
-    });
+  const response = await fetch('http://<IP-PUBLICO-EC2>:3000/agendamento', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ usuarioId: 1, data, horario }),
+  });
+
+  if (response.ok) {
+    alert(`✅ Agendamento confirmado para ${nome} em ${data} às ${hora}.`);
+    this.reset();
+  } else {
+    alert('Erro ao criar agendamento.');
+  }
+});
   </script>
 
 </body>
