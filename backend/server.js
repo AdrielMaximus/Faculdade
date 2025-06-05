@@ -70,8 +70,14 @@ app.post('/agendamento', (req, res) => {
   });
 });
 app.get('/agendamentos', (req, res) => {
-  const query = 'SELECT * FROM agendamentos';
-  db.query(query, (err, results) => {
+  const { usuarioId } = req.query;
+
+  if (!usuarioId) {
+    return res.status(400).send('ID do usuário é obrigatório.');
+  }
+
+  const query = 'SELECT * FROM agendamentos WHERE usuario_id = ?';
+  db.query(query, [usuarioId], (err, results) => {
     if (err) {
       console.error('Erro ao buscar agendamentos:', err);
       return res.status(500).send('Erro ao buscar agendamentos.');
