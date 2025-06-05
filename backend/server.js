@@ -56,7 +56,16 @@ app.post('/agendamento', (req, res) => {
     res.status(201).send('Agendamento criado com sucesso!');
   });
 });
-
+// Endpoint para testar conexão com o banco de dados
+app.get('/test-db', (req, res) => {
+  db.query('SELECT 1', (err, result) => {
+    if (err) {
+      console.error('Erro ao conectar ao banco de dados:', err);
+      return res.status(500).send('Erro ao conectar ao banco de dados.');
+    }
+    res.status(200).send('Conexão com o banco de dados está funcionando!');
+  });
+});
 // Iniciar o servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
