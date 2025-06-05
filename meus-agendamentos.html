@@ -55,18 +55,7 @@
       const agendamentosDiv = document.getElementById("agendamentos");
 
       try {
-        const response = await fetch('http://<IP-PUBLICO-EC2>:3000/agendamentos', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Erro ao buscar agendamentos");
-        }
-
-        const agendamentos = await response.json();
+        const agendamentos = await buscarAgendamentos();
 
         if (agendamentos.length === 0) {
           agendamentosDiv.innerHTML = '<p class="text-center text-purple-300 font-semibold">Nenhum agendamento encontrado.</p>';
@@ -77,11 +66,9 @@
           <div class="mb-4 p-4 bg-white/20 rounded-lg shadow-md">
             <p><strong>Data:</strong> ${agendamento.data}</p>
             <p><strong>Horário:</strong> ${agendamento.horario}</p>
-            <p><strong>Profissional:</strong> ${agendamento.profissional}</p>
           </div>
         `).join('');
       } catch (error) {
-        console.error(error);
         agendamentosDiv.innerHTML = '<p class="text-center text-red-500 font-semibold">Erro ao carregar agendamentos.</p>';
       }
     });

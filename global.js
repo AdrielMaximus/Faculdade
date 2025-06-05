@@ -121,3 +121,52 @@ document.getElementById('formCadastro').addEventListener('submit', async (e) => 
     alert('Erro ao cadastrar usuário.');
   }
 });
+let token = null;
+
+// Função de login
+async function login(email, senha) {
+  try {
+    const response = await fetch('http://<IP-PUBLICO-EC2>:3000/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, senha }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Email ou senha inválidos.');
+    }
+
+    const data = await response.json();
+    token = data.token;
+    localStorage.setItem('token', token);
+    alert('Login realizado com sucesso!');
+    window.location.href = 'meus-agendamentos.html';
+  } catch (error) {
+    console.error(error);
+    alert('Erro ao fazer login.');
+  }
+}
+
+// Função para buscar agendamentos
+async function buscarAgendamentos() {
+  try {
+    const response = await fetch('http://<IP-PUBLICO-EC2>:3000/agendamentos', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao buscar agendamentos.');
+    }
+
+    const agendamentos = await response.json();
+    return agendamentos;
+  } catch (error) {
+    console.error(error);
+    alert('Erro ao carregar agendamentos.');
+  }
+}
